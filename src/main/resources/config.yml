@@ -1,0 +1,48 @@
+# Configurações da API Gemini
+gemini:
+  api-key: "SUA_API_KEY_AQUI"
+  model: "gemini-pro"
+  timeout: 30000
+
+# Configurações do servidor web
+web:
+  port: 8080
+  host: "0.0.0.0"
+  enable-ssl: false
+  admin-password: "admin123"
+  session-timeout: 3600
+
+# Configurações dos bots
+bots:
+  max-bots: 50
+  spawn-radius: 10
+  update-interval: 20
+  enable-learning: true
+  experience-multiplier: 1.0
+
+# Configurações do banco de dados
+database:
+  type: "sqlite"
+  path: "data/bots.db"
+  host: "localhost"
+  port: 3306
+  username: ""
+  password: ""
+
+# Configurações de tarefas
+tasks:
+  mining:
+    enabled: true
+    max-depth: 64
+    valuable-blocks:
+      - DIAMOND_ORE
+      - GOLD_ORE
+      - IRON_ORE
+      - COAL_ORE
+  crafting:
+    enabled: true
+    recipes-file: "recipes.json"
+  combat:
+    enabled: true
+    aggro-radius: 16
+    damage-multiplier: 1.0

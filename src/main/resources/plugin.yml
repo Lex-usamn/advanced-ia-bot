@@ -1,0 +1,25 @@
+name: AdvancedIABot
+version: 2.0.0
+main: me.iabot.Main
+api-version: 1.19
+author: Lex-Usamn
+description: Sistema avançado de bots IA com aprendizado e dashboard
+website: https://github.com/seu-usuario/advanced-ia-bot
+
+commands:
+  bot:
+    description: Comandos para gerenciar bots IA
+    usage: /bot [create|remove|list|info|tp] [nome]
+    permission: iabot.use
+  aiadmin:
+    description: Comandos administrativos
+    usage: /aiadmin [reload|stats|config|saveall]
+    permission: iabot.admin
+
+permissions:
+  iabot.use:
+    description: Permissão para usar comandos básicos de bot
+    default: true
+  iabot.admin:
+    description: Permissões administrativas
+    default: op

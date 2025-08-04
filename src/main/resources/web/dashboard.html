@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IA Bot Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <header>
+            <h1>🤖 IA Bot Dashboard</h1>
+            <nav>
+                <button onclick="loadBots()" class="btn btn-secondary">Atualizar</button>
+                <button onclick="showCreateBot()" class="btn btn-success">Criar Bot</button>
+                <a href="/logout" class="btn btn-danger">Sair</a>
+            </nav>
+        </header>
+
+        <main>
+            <div class="stats-panel">
+                <div class="stat-card">
+                    <h3>Total de Bots</h3>
+                    <span id="total-bots">0</span>
+                </div>
+                <div class="stat-card">
+                    <h3>Bots Online</h3>
+                    <span id="online-bots">0</span>
+                </div>
+                <div class="stat-card">
+                    <h3>Nível Médio</h3>
+                    <span id="avg-level">0</span>
+                </div>
+            </div>
+
+            <div class="bots-list" id="bots-container">
+                <p>Carregando bots...</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal para criar bot -->
+    <div id="create-bot-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Criar Novo Bot</h2>
+            <form id="create-bot-form">
+                <div class="form-group">
+                    <label for="bot-name">Nome do Bot:</label>
+                    <input type="text" id="bot-name" name="bot-name" required>
+                </div>
+                <button type="submit" class="btn btn-success">Criar Bot</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Funções de carregamento
+        function loadBots() {
+            fetch('/api/bots')
+                .then(response => response.json())
+                .then(data => {
+                    displayBots(data.bots);
+                    updateStats(data);
+                })
+                .catch(error => {
+                    console.error('Erro ao carregar bots:', error);
+                });
+        }
+
+        function displayBots(bots) {
+            const container = document.getElementById('bots-container');
+            if (bots.length === 0) {
+                container.innerHTML = '<p>Nenhum bot criado ainda.</p>';
+                return;
+            }
+
+            let html = '';
+            bots.forEach(bot => {
+                html += `
+                    <div class="bot-card ${bot.online ? 'online' : 'offline'}">
+                        <div class="bot-header">
+                            <h3>${bot.name}</h3>
+                            <span class="status ${bot.online ? 'status-online' : 'status-offline'}">
+                                ${bot.online ? 'Online' : 'Offline'}
+                            </span>
+                        </div>
+                        <div class="bot-info">
+                            <p><strong>Nível:</strong> ${bot.level}</p>
+                            <p><strong>Experiência:</strong> ${bot.experience}</p>
+                            <p><strong>Tarefa:</strong> ${bot.task}</p>
+                            <p><strong>Localização:</strong> X:${bot.location.x.toFixed(1)}, Y:${bot.location.y.toFixed(1)}, Z:${bot.location.z.toFixed(1)}</p>
+                        </div>
+                        <div class="bot-actions">
+                            <button onclick="removeBot('${bot.name}')" class="btn btn-danger btn-small">Remover</button>
+                            <button onclick="viewBot('${bot.name}')" class="btn btn-primary btn-small">Detalhes</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function updateStats(data) {
+            document.getElementById('total-bots').textContent = data.total || 0;
+            
+            const onlineCount = data.bots ? data.bots.filter(b => b.online).length : 0;
+            document.getElementById('online-bots').textContent = onlineCount;
+            
+            const avgLevel = data.bots && data.bots.length > 0 ? 
+                (data.bots.reduce((sum, b) => sum + b.level, 0) / data.bots.length).toFixed(1) : 0;
+            document.getElementById('avg-level').textContent = avgLevel;
+        }
+
+        function showCreateBot() {
+            document.getElementById('create-bot-modal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('create-bot-modal').style.display = 'none';
+        }
+
+        function removeBot(name) {
+            if (confirm(`Tem certeza que deseja remover o bot ${name}?`)) {
+                fetch(`/api/bot?name=${encodeURIComponent(name)}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Bot removido com sucesso!');
+                        loadBots();
+                    } else {
+                        alert('Erro ao remover bot: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    alert('Erro ao remover bot: ' + error.message);
+                });
+            }
+        }
+
+        function viewBot(name) {
+            window.location.href = `/bot/${name}`;
+        }
+
+        // Event listeners
+        document.getElementById('create-bot-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('bot-name').value;
+            
+            fetch('/api/bots', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({name: name})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Bot criado com sucesso!');
+                    closeModal();
+                    loadBots();
+                } else {
+                    alert('Erro ao criar bot: ' + data.message);
+                }
+            })
+            .catch(error => {
+                alert('Erro ao criar bot: ' + error.message);
+            });
+        });
+
+        // Fechar modal ao clicar fora
+        window.onclick = function(event) {
+            const modal = document.getElementById('create-bot-modal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        // Carregar dados iniciais
+        document.addEventListener('DOMContentLoaded', function() {
+            loadBots();
+        });
+    </script>
+</body>
+</html>
